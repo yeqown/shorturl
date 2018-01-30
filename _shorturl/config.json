@@ -1,0 +1,9 @@
+{
+	"MySql": "yeqown:yeqown@/shorturl",
+	"Redis": {
+		"Addr": "localhost:6379",
+		"Pwd": "",
+		"DB": 2,
+		"PoolSize": 5
+	}
+}
