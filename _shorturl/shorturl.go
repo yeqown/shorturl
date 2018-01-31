@@ -19,13 +19,16 @@ func Shorten(longurl string) (string, error) {
 			DB: db,
 			Id: id,
 		}
-		um.Query()
+		if err := um.Query(); err != nil {
+			log.Println("Query mysql got an err: ", err)
+			return "", err
+		}
 		if um.ShortUrl != "" {
 			// resert url cache key expire
 			SetUrlCache(um.LongUrl, um.Id)
 			return um.ShortUrl, nil
 		}
-		log.Printf("Get shorturl from cahe with id=[%d]: %s but is empty string\n", um.Id, um.ShortUrl)
+		log.Printf("Get shorturl from cahe with id=[%d]: `%s` but is empty string\n", um.Id, um.ShortUrl)
 		DelUrlCache(um.LongUrl)
 	}
 

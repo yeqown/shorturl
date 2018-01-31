@@ -6,8 +6,8 @@ import (
 
 type UrlModel struct {
 	DB       *sql.DB
-	LongUrl  string
 	Id       int64
+	LongUrl  string
 	ShortUrl string
 }
 
@@ -18,6 +18,7 @@ func (u *UrlModel) Clear() {
 
 func (u *UrlModel) Insert() (int64, error) {
 	stmt, err := u.DB.Prepare("INSERT longurl SET id=?, long_url=?")
+
 	if err != nil {
 		return -1, err
 	}
@@ -30,19 +31,16 @@ func (u *UrlModel) Insert() (int64, error) {
 }
 
 func (u *UrlModel) Query() error {
-	stmt, err := u.DB.Prepare("Select * from longurl where id=? limit 1")
+	stmt, err := u.DB.Prepare("SELECT id, long_url, short_url FROM longurl WHERE id=?")
 	if err != nil {
 		return err
 	}
-	rows, _ := stmt.Query(u.Id)
-	defer rows.Close()
-
-	for rows.Next() {
-		if err := rows.Scan(&u.Id, &u.LongUrl, &u.ShortUrl); err == nil {
-			break
-		}
+	if row := stmt.QueryRow(u.Id); err == nil {
+		row.Scan(&u.Id, &u.LongUrl, &u.ShortUrl)
+		return nil
+	} else {
+		return err
 	}
-	return nil
 }
 
 func (u *UrlModel) Update() error {

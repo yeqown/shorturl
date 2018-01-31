@@ -3,6 +3,7 @@ package shorturl
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"time"
 	// "log"
 )
 
@@ -27,6 +28,7 @@ func ConnectDB(connStr string) error {
 	if err = db.Ping(); err != nil {
 		return err
 	}
+	db.SetConnMaxLifetime(10 * time.Second)
 	return nil
 }
 
