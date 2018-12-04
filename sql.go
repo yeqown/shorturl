@@ -2,25 +2,26 @@ package shorturl
 
 import (
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"time"
-	// "log"
 )
 
 var db *sql.DB
 
+// GetDB ...
 func GetDB() (*sql.DB, error) {
 	if db == nil {
-		ins := GetInstance()
-		if err := ConnectDB(ins.MySql); err != nil {
-			return nil, err
-		}
+		// ins := GetInstance()
+		// if err := ConnectDB(ins.MySql); err != nil {
+		// 	return nil, err
+		// }
+		panic("DB is disconnected !")
 	}
 	return db, nil
 }
 
-func ConnectDB(connStr string) error {
-	var err error
+// ConnectDB ...
+// yeqown:yeqown@/shorturl
+func ConnectDB(connStr string) (err error) {
 	db, err = sql.Open("mysql", connStr)
 	if err != nil {
 		return err
@@ -32,6 +33,7 @@ func ConnectDB(connStr string) error {
 	return nil
 }
 
+// CloseConnection ...
 func CloseConnection() {
 	db.Close()
 	db = nil

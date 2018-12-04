@@ -1,4 +1,4 @@
-package shorturl
+package base62
 
 import (
 	"testing"

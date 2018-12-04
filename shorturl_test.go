@@ -6,12 +6,10 @@ import (
 )
 
 func Test_ShortenAndParse(t *testing.T) {
-	LoadConfig("./config.json")
-
 	url := "http://www.baidu.com"
 	shorturl, err := Shorten(url)
 	if err != nil || shorturl == "" {
-		t.Errorf("Shorten got err:", err)
+		t.Errorf("Shorten got err: %v", err)
 		t.FailNow()
 	}
 

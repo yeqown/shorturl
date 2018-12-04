@@ -1,16 +1,26 @@
 package shorturl
 
 import (
-	"github.com/go-redis/redis"
 	"strconv"
 	"time"
+
+	"github.com/go-redis/redis"
 	// "sync"
 )
 
-var client *redis.Client
+var (
+	client *redis.Client
+)
 
-// var mutex sync.Mutex
+// RedisConfig ....
+type RedisConfig struct {
+	Addr     string `json:"Addr"`
+	DB       int    `json:"DB"`
+	Pwd      string `json:"Pwd"`
+	PoolSize int    `json:"PoolSize"`
+}
 
+// ConnectRedis ...
 func ConnectRedis(rc *RedisConfig) {
 	client = redis.NewClient(&redis.Options{
 		Addr:     rc.Addr,
@@ -20,9 +30,11 @@ func ConnectRedis(rc *RedisConfig) {
 	})
 }
 
+// EXPIRE 1 hour
 const EXPIRE = 3600 * 1
 
-func SetUrlCache(url string, id int64) error {
+// setURLCache set url and id into cache
+func setURLCache(url string, id int64) error {
 	// mutex.Lock()
 	// defer mutex.Unlock()
 	if err := client.Set(url, id, EXPIRE*time.Second).Err(); err != nil {
@@ -31,7 +43,8 @@ func SetUrlCache(url string, id int64) error {
 	return nil
 }
 
-func CheckUrlCacheExist(url string) (int64, bool) {
+// checkURLCacheExist ...
+func checkURLCacheExist(url string) (int64, bool) {
 	var val string
 	var err error
 
@@ -45,7 +58,8 @@ func CheckUrlCacheExist(url string) (int64, bool) {
 	return id, true
 }
 
-func DelUrlCache(url string) error {
+// delURLCache ...
+func delURLCache(url string) error {
 	// mutex.Lock()
 	// defer mutex.Unlock()
 	_, err := client.Del(url).Result()
