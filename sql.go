@@ -2,35 +2,45 @@ package shorturl
 
 import (
 	"database/sql"
+	"sync"
 	"time"
 )
 
-var db *sql.DB
+var (
+	db *sql.DB
+	once sync.Once
+)
 
 // GetDB ...
 func GetDB() (*sql.DB, error) {
 	if db == nil {
-		// ins := GetInstance()
-		// if err := ConnectDB(ins.MySql); err != nil {
-		// 	return nil, err
-		// }
-		panic("DB is disconnected !")
+		panic("DB is nil !")
 	}
+
 	return db, nil
 }
 
 // ConnectDB ...
-// yeqown:yeqown@/shorturl
-func ConnectDB(connStr string) (err error) {
-	db, err = sql.Open("mysql", connStr)
+// addr user:pwd@/dbname
+func ConnectDB(addr string) (err error) {
+	once.Do(func() {
+		db, err = sql.Open("mysql", addr)
+		if err != nil {
+			return
+		}
+
+		if err = db.Ping(); err != nil {
+			return
+		}
+		db.SetConnMaxLifetime(10 * time.Second)
+	})
+
 	if err != nil {
-		return err
+		// reinitialize once
+		once = sync.Once{}
 	}
-	if err = db.Ping(); err != nil {
-		return err
-	}
-	db.SetConnMaxLifetime(10 * time.Second)
-	return nil
+
+	return
 }
 
 // CloseConnection ...

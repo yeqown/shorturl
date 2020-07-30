@@ -10,7 +10,7 @@ import (
 const Domain = "localhost:9090/long"
 
 // Shorten ...
-func Shorten(longurl string) (string, error) {
+func Shorten(long string) (string, error) {
 	var err error
 	db, err := GetDB()
 	if err != nil {
@@ -18,7 +18,7 @@ func Shorten(longurl string) (string, error) {
 	}
 
 	// get from cache first
-	if id, ex := checkURLCacheExist(longurl); ex {
+	if id, ex := checkURLCacheExist(long); ex {
 		um := URLModel{
 			DB: db,
 			ID: id,
@@ -28,7 +28,7 @@ func Shorten(longurl string) (string, error) {
 			return "", err
 		}
 		if um.ShortURL != "" {
-			// resert url cache key expire
+			// reset url cache key expire
 			setURLCache(um.LongURL, um.ID)
 			return um.ShortURL, nil
 		}
@@ -36,10 +36,10 @@ func Shorten(longurl string) (string, error) {
 		delURLCache(um.LongURL)
 	}
 
-	// if not target longurl in cache
+	// if not target long in cache
 	um := URLModel{
 		DB:      db,
-		LongURL: longurl,
+		LongURL: long,
 	}
 	if _, err = um.insert(); err != nil {
 		return "", err
@@ -54,13 +54,13 @@ func Shorten(longurl string) (string, error) {
 }
 
 // Parse short_url convert 2 id
-func Parse(shorturl string) (string, error) {
+func Parse(short string) (string, error) {
 	db, err := GetDB()
 	if err != nil {
 		return "", err
 	}
 
-	id := base62.Decode(shorturl)
+	id := base62.Decode(short)
 	um := &URLModel{
 		ID: id,
 		DB: db,

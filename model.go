@@ -45,10 +45,12 @@ func (u *URLModel) query() error {
 	if err != nil {
 		return err
 	}
-	if row := stmt.QueryRow(u.ID); err == nil {
+
+	if row := stmt.QueryRow(u.ID); true {
 		row.Scan(&u.ID, &u.LongURL, &u.ShortURL)
 		return nil
 	}
+
 	return err
 }
 

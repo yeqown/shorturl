@@ -1,7 +1,6 @@
 package base62
 
 import (
-	// "fmt"
 	"math"
 	"strings"
 )
@@ -29,7 +28,7 @@ func Encode(number int64) string {
 		result = append(result, base62[remain])
 		number = round
 	}
-	// 逆置
+	// reverse
 	for start, end := 0, len(result)-1; start < end; start, end = start+1, end-1 {
 		result[start], result[end] = result[end], result[start]
 	}
@@ -51,7 +50,7 @@ func Decode(str string) int64 {
 		w := int(math.Pow(length, float64(l)))
 		v := eDoc[string(ch)]
 		// fmt.Printf("`%s` weight %d, value: %d, l: %d\n", str, w, v, l)
-		result += (v * w)
+		result += v * w
 	}
 	return int64(result)
 }
