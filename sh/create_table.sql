@@ -1,7 +1,7 @@
-use shorturl;
+use shorten-url;
 
-create table longurl(
+create table shorted_url (
 	id int(64) not null primary key auto_increment,
-	long_url varchar(100) not null,
-	short_url varchar(40)
+	source varchar(512) not null,
+	shorted varchar(128)
 );

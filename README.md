@@ -1,3 +1,3 @@
-# shorturl
+# Shorturl library
 
 ShortUrl System Coding
