@@ -28,8 +28,10 @@ func NewORM(dsn, driver string) (*ShortORM, error) {
 	if _orm == nil {
 		_once.Do(func() {
 			_orm = &ShortORM{
-				dsn:    dsn,
-				driver: driver,
+				dsn:       dsn,
+				driver:    driver,
+				_mu:       sync.RWMutex{},
+				stmtCache: make(map[string]*sql.Stmt),
 			}
 			err = _orm.initConn()
 		})
@@ -48,7 +50,6 @@ func (o *ShortORM) initConn() (err error) {
 		return
 	}
 
-	// TODO: make these as options
 	o.DB.SetConnMaxLifetime(10 * time.Second)
 	o.DB.SetMaxOpenConns(100)
 	o.DB.SetMaxIdleConns(20)
@@ -68,17 +69,23 @@ func (o *ShortORM) Close() error {
 }
 
 func (o *ShortORM) Create(m *ShortURLDO) (err error) {
+	m.hash()
+
 	_key := o.stmtCacheKey(m, "insert")
+	o._mu.RLock()
 	stmt, ok := o.stmtCache[_key]
+	o._mu.RUnlock()
 	if !ok {
 		if stmt, err = o.Prepare(_insertSQL); err != nil {
 			return
 		}
 
+		o._mu.Lock()
 		o.stmtCache[_key] = stmt
+		o._mu.Unlock()
 	}
 
-	ret, err := stmt.Exec(m.Source)
+	ret, err := stmt.Exec(m.Source, m.Hash)
 	if err != nil {
 		return err
 	}
@@ -98,16 +105,20 @@ func (o *ShortORM) Update(m *ShortURLDO) (err error) {
 	}
 
 	_key := o.stmtCacheKey(m, "update")
+	o._mu.RLock()
 	stmt, ok := o.stmtCache[_key]
+	o._mu.RUnlock()
 	if !ok {
 		if stmt, err = o.Prepare(_updateSQL); err != nil {
 			return
 		}
 
+		o._mu.Lock()
 		o.stmtCache[_key] = stmt
+		o._mu.Unlock()
 	}
 
-	_, err = stmt.Exec(m.Source, m.Shorted, m.ID)
+	_, err = stmt.Exec(m.Shorted, m.ID)
 	if err != nil {
 		return err
 	}
@@ -120,17 +131,21 @@ func (o *ShortORM) Query(m *ShortURLDO) (err error) {
 	}
 
 	_key := o.stmtCacheKey(m, "query")
+	o._mu.RLock()
 	stmt, ok := o.stmtCache[_key]
+	o._mu.RUnlock()
 	if !ok {
 		if stmt, err = o.Prepare(_querySQL); err != nil {
 			return
 		}
 
+		o._mu.Lock()
 		o.stmtCache[_key] = stmt
+		o._mu.Unlock()
 	}
 
 	if row := stmt.QueryRow(m.ID); true {
-		return row.Scan(&m.ID, &m.Source, &m.Shorted)
+		return row.Scan(&m.ID, &m.Source, &m.Hash, &m.Shorted)
 	}
 
 	return err
