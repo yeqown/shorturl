@@ -20,6 +20,7 @@ type ShortORM struct {
 
 	_mu       sync.RWMutex
 	stmtCache map[string]*sql.Stmt
+	// TODO(@yeqown) what's sql.Stmt, concurrent safe?
 }
 
 func NewORM(dsn, driver string) (*ShortORM, error) {
@@ -87,6 +88,10 @@ func (o *ShortORM) Create(m *ShortURLDO) (err error) {
 
 	ret, err := stmt.Exec(m.Source, m.Hash)
 	if err != nil {
+		if isDuplicateIdx(err) {
+			return o.QueryByHash(m)
+		}
+
 		return err
 	}
 
@@ -145,6 +150,32 @@ func (o *ShortORM) Query(m *ShortURLDO) (err error) {
 	}
 
 	if row := stmt.QueryRow(m.ID); true {
+		return row.Scan(&m.ID, &m.Source, &m.Hash, &m.Shorted)
+	}
+
+	return err
+}
+
+func (o *ShortORM) QueryByHash(m *ShortURLDO) (err error) {
+	if m.Hash <= 0 {
+		return errors.New("invalid hash")
+	}
+
+	_key := o.stmtCacheKey(m, "query_by_hash")
+	o._mu.RLock()
+	stmt, ok := o.stmtCache[_key]
+	o._mu.RUnlock()
+	if !ok {
+		if stmt, err = o.Prepare(_queryByHashSQL); err != nil {
+			return
+		}
+
+		o._mu.Lock()
+		o.stmtCache[_key] = stmt
+		o._mu.Unlock()
+	}
+
+	if row := stmt.QueryRow(m.Hash); true {
 		return row.Scan(&m.ID, &m.Source, &m.Hash, &m.Shorted)
 	}
 

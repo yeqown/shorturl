@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	_insertSQL = "INSERT INTO shorted_url(source, hash) VALUES(?, ?)"
-	_updateSQL = "UPDATE shorted_url SET shorted = ? WHERE id = ?"
-	_querySQL  = "SELECT id, source, hash, shorted FROM shorted_url WHERE id = ?"
+	_insertSQL      = "INSERT INTO shorted_url(source, hash) VALUES(?, ?)"
+	_updateSQL      = "UPDATE shorted_url SET shorted = ? WHERE id = ?"
+	_querySQL       = "SELECT id, source, hash, shorted FROM shorted_url WHERE id = ?"
+	_queryByHashSQL = "SELECT id, source, hash, shorted FROM shorted_url WHERE hash = ?"
 )
 
 // ShortURLDO ...
